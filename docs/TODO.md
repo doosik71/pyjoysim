@@ -22,6 +22,12 @@ Phase 1 Week 3 작업을 진행하라.
 
 git commit 메시지를 작성하라.
 
+Phase 1 Week 4 작업을 진행하라.
+
+1단계 개발 계획 문서에 1단계 진행 상황을 반영하라.
+
+git commit 메시지를 작성하라.
+
 ## TODO
 
-Phase 1 Week 4 작업을 진행하라.
+Phase 2 Week 1-2 작업을 진행하라.

@@ -1,13 +1,31 @@
 """
-User interface components
+User interface system for PyJoySim.
+
+This module provides UI components including debug overlays,
+performance monitors, and interactive controls.
 """
 
-from .main_window import MainWindow
-from .simulation_selector import SimulationSelector
-from .control_panel import ControlPanel
+from .overlay import (
+    OverlayManager,
+    OverlayElement,
+    OverlayPosition,
+    OverlayStyle,
+    PerformanceMonitor,
+    PhysicsDebugOverlay,
+    InputDebugOverlay,
+    CustomInfoPanel
+)
 
 __all__ = [
-    "MainWindow",
-    "SimulationSelector",
-    "ControlPanel",
+    # Overlay system
+    "OverlayManager",
+    "OverlayElement",
+    "OverlayPosition",
+    "OverlayStyle",
+    
+    # Built-in overlays
+    "PerformanceMonitor",
+    "PhysicsDebugOverlay", 
+    "InputDebugOverlay",
+    "CustomInfoPanel",
 ]
