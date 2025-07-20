@@ -32,6 +32,11 @@ Phase 2 Week 1-2 작업을 진행하라.
 
 git commit 메시지를 작성하라.
 
+Phase 2 Week 3-4 작업을 진행하라.
+
+git commit 메시지를 작성하라.
+
 ## TODO
 
-Phase 2 Week 3-4 작업을 진행하라.
+Phase 2 Week 5-6 작업을 진행하라.
+

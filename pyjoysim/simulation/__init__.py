@@ -22,6 +22,23 @@ from .manager import (
     register_simulation
 )
 
+# Import simulation modules to trigger registration
+try:
+    from .vehicle import CarSimulation, CAR_SIMULATION_METADATA
+    from .robot import RobotArmSimulation, ROBOT_ARM_SIMULATION_METADATA
+    
+    # Register vehicle simulations
+    register_simulation(CarSimulation, CAR_SIMULATION_METADATA)
+    
+    # Register robot simulations 
+    register_simulation(RobotArmSimulation, ROBOT_ARM_SIMULATION_METADATA)
+    
+except ImportError as e:
+    # Handle import errors gracefully during development
+    import warnings
+    warnings.warn(f"Some simulations could not be imported: {e}")
+    pass
+
 __all__ = [
     # Core simulation framework
     "BaseSimulation",

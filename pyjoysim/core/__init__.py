@@ -2,10 +2,11 @@
 Core system components
 """
 
-from .simulation_manager import SimulationManager
-from .base_simulation import BaseSimulation
+# Import from simulation module for compatibility
+from ..simulation.manager import SimulationManager
+from ..simulation.base import BaseSimulation
 
 __all__ = [
-    "SimulationManager",
+    "SimulationManager", 
     "BaseSimulation",
 ]
