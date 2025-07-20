@@ -161,9 +161,15 @@ class Shape3DType(Enum):
 class Shape3D:
     """3D collision shape definition."""
     shape_type: Shape3DType
-    dimensions: Vector3D = Vector3D(1, 1, 1)  # Box: width, height, depth; Sphere: radius, 0, 0
+    dimensions: Vector3D = None  # Box: width, height, depth; Sphere: radius, 0, 0
     mesh_path: Optional[str] = None            # For mesh shapes
-    scale: Vector3D = Vector3D(1, 1, 1)        # Scaling factor
+    scale: Vector3D = None        # Scaling factor
+    
+    def __post_init__(self):
+        if self.dimensions is None:
+            self.dimensions = Vector3D(1, 1, 1)
+        if self.scale is None:
+            self.scale = Vector3D(1, 1, 1)
     
     def create_collision_shape(self) -> int:
         """Create PyBullet collision shape."""
@@ -231,8 +237,8 @@ class PhysicsObject3D:
                  shape: Shape3D,
                  body_type: Body3DType = Body3DType.DYNAMIC,
                  mass: float = 1.0,
-                 position: Vector3D = Vector3D(),
-                 rotation: Quaternion = Quaternion(),
+                 position: Optional[Vector3D] = None,
+                 rotation: Optional[Quaternion] = None,
                  material: Optional[PhysicsMaterial3D] = None):
         """
         Initialize 3D physics object.
@@ -250,8 +256,8 @@ class PhysicsObject3D:
         self.shape = shape
         self.body_type = body_type
         self.mass = mass if body_type == Body3DType.DYNAMIC else 0.0
-        self.position = position
-        self.rotation = rotation
+        self.position = position or Vector3D()
+        self.rotation = rotation or Quaternion()
         self.material = material or PhysicsMaterial3D()
         
         # PyBullet object ID (set when added to world)

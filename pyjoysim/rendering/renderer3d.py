@@ -72,8 +72,8 @@ class Light3D:
     light_type: str  # "directional", "point", "spot"
     
     # Position/Direction
-    position: Vector3D = Vector3D(0, 10, 0)
-    direction: Vector3D = Vector3D(0, -1, 0)
+    position: Vector3D = None
+    direction: Vector3D = None
     
     # Colors
     ambient: Tuple[float, float, float] = (0.1, 0.1, 0.1)
@@ -91,6 +91,12 @@ class Light3D:
     
     # State
     enabled: bool = True
+    
+    def __post_init__(self):
+        if self.position is None:
+            self.position = Vector3D(0, 10, 0)
+        if self.direction is None:
+            self.direction = Vector3D(0, -1, 0)
 
 
 @dataclass
@@ -163,14 +169,22 @@ class RenderObject3D:
     material: Material3D
     
     # Transform
-    position: Vector3D = Vector3D()
-    rotation: Quaternion = Quaternion()
-    scale: Vector3D = Vector3D(1, 1, 1)
+    position: Vector3D = None
+    rotation: Quaternion = None
+    scale: Vector3D = None
     
     # State
     visible: bool = True
     cast_shadows: bool = True
     receive_shadows: bool = True
+    
+    def __post_init__(self):
+        if self.position is None:
+            self.position = Vector3D()
+        if self.rotation is None:
+            self.rotation = Quaternion()
+        if self.scale is None:
+            self.scale = Vector3D(1, 1, 1)
     
     def get_model_matrix(self) -> np.ndarray:
         """Get the model transformation matrix."""
@@ -252,7 +266,7 @@ class Renderer3D:
         self.height = height
         
         # ModernGL context (will be set by window)
-        self.ctx: Optional[mgl.Context] = None
+        self.ctx: Optional[Any] = None
         
         # Rendering objects
         self.render_objects: Dict[str, RenderObject3D] = {}
@@ -281,7 +295,7 @@ class Renderer3D:
             "height": height
         })
     
-    def initialize_context(self, ctx: mgl.Context) -> None:
+    def initialize_context(self, ctx: Any) -> None:
         """
         Initialize ModernGL context and resources.
         
@@ -291,12 +305,12 @@ class Renderer3D:
         self.ctx = ctx
         
         # Enable depth testing
-        if self.enable_depth_test:
-            self.ctx.enable(mgl.DEPTH_TEST)
+        if self.enable_depth_test and hasattr(self.ctx, 'DEPTH_TEST'):
+            self.ctx.enable(self.ctx.DEPTH_TEST)
         
         # Enable face culling
-        if self.enable_face_culling:
-            self.ctx.enable(mgl.CULL_FACE)
+        if self.enable_face_culling and hasattr(self.ctx, 'CULL_FACE'):
+            self.ctx.enable(self.ctx.CULL_FACE)
         
         # Create shaders
         self._create_shaders()
@@ -355,7 +369,7 @@ class Renderer3D:
         if not self.ctx:
             return
         
-        # Basic vertex shader
+        # Basic vertex shader with shadow mapping support
         vertex_shader = """
         #version 330 core
         
@@ -367,28 +381,32 @@ class Renderer3D:
         uniform mat4 view;
         uniform mat4 projection;
         uniform mat3 normal_matrix;
+        uniform mat4 light_space_matrix;
         
         out vec3 frag_pos;
         out vec3 frag_normal;
         out vec2 frag_texcoord;
+        out vec4 frag_pos_light_space;
         
         void main() {
             vec4 world_pos = model * vec4(in_position, 1.0);
             frag_pos = world_pos.xyz;
             frag_normal = normalize(normal_matrix * in_normal);
             frag_texcoord = in_texcoord;
+            frag_pos_light_space = light_space_matrix * world_pos;
             
             gl_Position = projection * view * world_pos;
         }
         """
         
-        # Basic fragment shader with Phong lighting
+        # Basic fragment shader with Phong lighting and shadow mapping
         fragment_shader = """
         #version 330 core
         
         in vec3 frag_pos;
         in vec3 frag_normal;
         in vec2 frag_texcoord;
+        in vec4 frag_pos_light_space;
         
         out vec4 frag_color;
         
@@ -406,6 +424,32 @@ class Renderer3D:
         uniform vec3 light_specular;
         
         uniform vec3 view_pos;
+        
+        // Shadow mapping
+        uniform sampler2D shadow_map;
+        uniform bool enable_shadows;
+        
+        float ShadowCalculation(vec4 fragPosLightSpace) {
+            if (!enable_shadows) return 0.0;
+            
+            // Perspective divide
+            vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+            // Transform to [0,1] range
+            projCoords = projCoords * 0.5 + 0.5;
+            
+            // Keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+            if(projCoords.z > 1.0)
+                return 0.0;
+            
+            // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
+            float closestDepth = texture(shadow_map, projCoords.xy).r; 
+            // Get depth of current fragment from light's perspective
+            float currentDepth = projCoords.z;
+            
+            // Check whether current frag pos is in shadow
+            float bias = 0.005;
+            return currentDepth - bias > closestDepth ? 1.0 : 0.0;
+        }
         
         void main() {
             // Normalize normal
@@ -425,7 +469,11 @@ class Renderer3D:
             float spec = pow(max(dot(view_dir, reflect_dir), 0.0), material_shininess);
             vec3 specular = light_specular * (spec * material_specular);
             
-            vec3 result = ambient + diffuse + specular;
+            // Shadow calculation
+            float shadow = ShadowCalculation(frag_pos_light_space);
+            
+            // Apply shadows only to diffuse and specular components
+            vec3 result = ambient + (1.0 - shadow) * (diffuse + specular);
             frag_color = vec4(result, material_transparency);
         }
         """
@@ -808,7 +856,9 @@ class Renderer3D:
             
             # Create texture
             texture = self.ctx.texture((img.width, img.height), 3, img_data.tobytes())
-            texture.filter = (mgl.LINEAR_MIPMAP_LINEAR, mgl.LINEAR)
+            if hasattr(texture, 'filter'):
+                texture.filter = (getattr(self.ctx, 'LINEAR_MIPMAP_LINEAR', 0x2703), 
+                                  getattr(self.ctx, 'LINEAR', 0x2601))
             texture.build_mipmaps()
             
             self.textures[name] = texture

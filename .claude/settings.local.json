@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(python -m pytest tests/integration/test_3d_integration.py -v)",
+      "Bash(python test:*)"
     ],
     "deny": []
   }
