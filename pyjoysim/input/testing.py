@@ -18,7 +18,7 @@ from .config_manager import InputConfigManager, JoystickProfile
 from .hotplug import IntegratedHotplugManager, HotplugEvent
 from ..config import get_settings
 from ..core.logging import get_logger
-from ..core.exceptions import InputError, ValidationError
+# from ..core.exceptions import InputError, ValidationError
 
 
 class TestType(Enum):

@@ -16,7 +16,7 @@ import pymunk.pygame_util
 
 from ..config import get_settings
 from ..core.logging import get_logger
-from ..core.exceptions import PhysicsError, InitializationError
+from ..core.exceptions import PhysicsError
 
 
 class PhysicsEngineType(Enum):

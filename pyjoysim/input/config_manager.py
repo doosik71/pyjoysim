@@ -12,7 +12,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 
 from .input_processor import AxisMapping, ButtonMapping, AxisType
-from ..config import get_config
+from ..config import get_settings
 from ..core.logging import get_logger
 from ..core.exceptions import ConfigurationError, InvalidConfigValueError
 

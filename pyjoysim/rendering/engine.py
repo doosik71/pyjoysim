@@ -18,7 +18,7 @@ from pygame import Surface, Rect
 from ..physics import Vector2D, PhysicsObject
 from ..config import get_settings
 from ..core.logging import get_logger
-from ..core.exceptions import RenderError, InitializationError
+# from ..core.exceptions import RenderError, InitializationError
 
 
 class RenderEngineType(Enum):

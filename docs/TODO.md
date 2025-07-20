@@ -40,8 +40,8 @@ Phase 2 Week 5-6 작업을 진행하라.
 
 2단계 개발 계획 문서에 2단계 진행 상황을 반영하라.
 
-## TODO
-
 git commit 메시지를 작성하라.
 
-Phase 3 Week 1-2 작업을 진행하라.
+## TODO
+
+Phase 3 Week 1-2 작업을 진행하라. (continue)
