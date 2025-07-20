@@ -23,6 +23,7 @@ class SimulationCategory(Enum):
     PHYSICS = "physics"
     VEHICLE = "vehicle"
     ROBOT = "robot"
+    AERIAL = "aerial"
     GAME = "game"
     EDUCATION = "education"
     RESEARCH = "research"

@@ -44,8 +44,10 @@ git commit 메시지를 작성하라.
 
 Phase 3 Week 1-2 작업을 진행하라.
 
-## TODO
-
 git commit 메시지를 작성하라.
 
 Phase 3 Week 3-4 작업을 진행하라.
+
+## TODO
+
+git commit 메시지를 작성하라.

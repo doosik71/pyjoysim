@@ -265,6 +265,49 @@ class DeadzonFilter(InputFilter):
         )
 
 
+@dataclass
+class InputState:
+    """
+    High-level input state for simulation use.
+    
+    This class provides a simplified interface for accessing input state
+    in simulations, abstracting away the low-level joystick details.
+    """
+    # Joystick states (list of joystick inputs)
+    joystick_inputs: List[JoystickInput] = field(default_factory=list)
+    
+    # Keyboard state (if implemented)
+    keys_pressed: set = field(default_factory=set)
+    
+    # Combined state helpers
+    def joystick_available(self) -> bool:
+        """Check if any joystick is available."""
+        return len(self.joystick_inputs) > 0
+    
+    def get_joystick_state(self, joystick_id: int) -> Optional[Dict[str, Any]]:
+        """Get state for specific joystick as a dictionary."""
+        for input_data in self.joystick_inputs:
+            if input_data.joystick_id == joystick_id:
+                # Convert to dictionary format for easy access
+                buttons = {}
+                for i, pressed in enumerate(input_data.buttons):
+                    buttons[i] = pressed
+                
+                axes = {}
+                for i, value in enumerate(input_data.axes):
+                    axes[f'axis_{i}'] = value
+                
+                return {
+                    'buttons': buttons,
+                    **axes
+                }
+        return None
+    
+    def get_keys_pressed(self) -> set:
+        """Get currently pressed keys."""
+        return self.keys_pressed.copy()
+
+
 class InputProcessor:
     """
     High-level input processor for converting raw joystick input into game events.
@@ -277,10 +320,13 @@ class InputProcessor:
     - Performance monitoring
     """
     
-    def __init__(self):
+    def __init__(self, joystick_manager=None):
         """Initialize the input processor."""
         self.logger = get_logger("input_processor")
         self.settings = get_settings()
+        
+        # Store joystick manager reference
+        self.joystick_manager = joystick_manager
         
         # State tracking
         self._previous_inputs: Dict[int, JoystickInput] = {}
@@ -585,6 +631,25 @@ class InputProcessor:
                 button_mapping._is_pressed = False
         
         self.logger.debug("Joystick state cleared", extra={"joystick_id": joystick_id})
+    
+    def process_input(self) -> InputState:
+        """
+        Process input from all joysticks and return InputState.
+        
+        Returns:
+            InputState containing current input state
+        """
+        input_state = InputState()
+        
+        if self.joystick_manager:
+            # Get current input from all joysticks
+            all_inputs = self.joystick_manager.get_all_inputs()
+            input_state.joystick_inputs = all_inputs
+        
+        # Keyboard support would be added here if implemented
+        # For now, return empty keyboard state
+        
+        return input_state
 
 
 # Global input processor instance
